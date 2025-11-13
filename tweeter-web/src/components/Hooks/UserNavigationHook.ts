@@ -1,3 +1,25 @@
+/*
+  Non ui responsibilities in this hook:
+  - looking up a user by alias
+  - validating whether the alias exists
+  - deciding what to do when navigation succeeds or fails
+  - handling error conditions that are not part of UI rendering
+  
+
+  MVP flow after my refactor:
+  - UserNavigationHook.ts (UI-facing hook only)
+      -> exposes goToUser for components to call
+  - UserNavigationPresenter
+      -> receives alias + authToken, performs validation and logic
+      -> calls...
+  - UserService.getUser
+      -> retrieves the user from FakeData/server, returns result up
+      -> presenter sends results back to...
+  - UserNavigationView interface (in my hook)
+      -> performs the actual navigation or displays errors
+*/
+
+
 import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthToken, User } from "tweeter-shared";
