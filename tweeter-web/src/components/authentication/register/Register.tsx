@@ -1,3 +1,24 @@
+/*
+  Non ui in the component:
+  - form validation (whether Register is allowed)
+  - registration flow (calling FakeData / backend, handling success/failure)
+  - preparing registration data (converting File -> data needed for request)
+  - updating user info and triggering navigation
+  
+
+  MVP flow after my refactor
+  - Register.tsx (UI only) 
+      -> collects user input + handles DOM events
+  - RegisterPresenter
+      -> receives input values -> performs validation -> drives busy/error states
+      -> calls the user service.
+  - UserService.register
+      → converts file into request data -> returns user + token back up
+      → presenter sends results back to view
+  - RegisterView interface in Register.tsx
+      → updates context + navigates as directed by presenter
+*/
+
 import "./Register.css";
 import "bootstrap/dist/css/bootstrap.css";
 import { ChangeEvent, useState } from "react";
@@ -16,9 +37,9 @@ const Register = () => {
   const [lastName, setLastName] = useState("");
   const [alias, setAlias] = useState("");
   const [password, setPassword] = useState("");
-  const [imageBytes, setImageBytes] = useState<Uint8Array>(new Uint8Array());
+  const [] = useState<Uint8Array>(new Uint8Array());
   const [imageUrl, setImageUrl] = useState<string>("");
-  const [imageFileExtension, setImageFileExtension] = useState<string>("");
+  const [] = useState<string>("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | undefined>(undefined);
@@ -68,8 +89,8 @@ const Register = () => {
 
   const handleImageFile = (file: File | undefined) => {
     if (file) {
-      setImageFile(file);                               // <-- keep the File
-      setImageUrl(URL.createObjectURL(file));           // <-- preview only
+      setImageFile(file);
+      setImageUrl(URL.createObjectURL(file));
     } else {
       setImageFile(undefined);
       setImageUrl("");
@@ -95,7 +116,7 @@ const Register = () => {
     userImageBytes: Uint8Array,
     imageFileExtension: string
   ): Promise<[User, AuthToken]> => {
-    // Not neded now, but will be needed when you make the request to the server in milestone 3
+    // Not needed now, but will be needed when you make the request to the server in milestone 3
     const imageStringBase64: string =
       Buffer.from(userImageBytes).toString("base64");
 
