@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { FakeData, Status } from "tweeter-shared";
+import { Status } from "tweeter-shared";
 import { useParams } from "react-router-dom";
 import StatusItem from "../statusItem/StatusItem";
 import { useMessageActions } from "../toaster/MessageHooks";
@@ -27,6 +27,7 @@ const StatusItemScroller = (props: Props) => {
     addItems: (newItems: Status[]) =>
       setItems((prev) => [...prev, ...newItems]),
     displayErrorMessage,
+    setDisplayedUser,
   };
 
 const presenterRef = useRef<StatusItemPresenter | null>(null);
@@ -39,18 +40,14 @@ if (!presenterRef.current) {
     ? props.featureUrl
     : `/${props.featureUrl}`;
 
-  // Sync displayedUser with :displayedUser in the URL (same pattern you used)
+  // Sync displayedUser with :displayedUser in the URL (delegated to presenter)
   useEffect(() => {
-    if (
-      authToken &&
-      displayedUserAliasParam &&
-      displayedUserAliasParam !== displayedUser!.alias
-    ) {
-      // TODO: Replace with server call later
-      const toUser = FakeData.instance.findUserByAlias(displayedUserAliasParam!);
-      if (toUser) setDisplayedUser(toUser);
-    }
-  }, [displayedUserAliasParam]);
+    presenterRef.current!.syncDisplayedUserFromRoute(
+      authToken ?? null,
+      displayedUserAliasParam,
+      displayedUser ?? null
+    );
+  }, [authToken, displayedUserAliasParam, displayedUser]);
 
   // Re-init when displayed user changes
   useEffect(() => {

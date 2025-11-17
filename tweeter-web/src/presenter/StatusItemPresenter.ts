@@ -1,14 +1,17 @@
-import { AuthToken, Status } from "tweeter-shared";
+import { AuthToken, Status, User } from "tweeter-shared";
 import { StatusService } from "../model.service/StatusService";
+import { UserService } from "../model.service/UserService";
 
 export interface StatusItemView {
   addItems: (newItems: Status[]) => void;
   displayErrorMessage: (message: string) => void;
+  setDisplayedUser: (user: User) => void;
 }
 
 export class StatusItemPresenter {
   private view: StatusItemView;
   private service: StatusService;
+  private userService: UserService;
   private _hasMoreItems = true;
   private _lastItem: Status | null = null;
   private mode: "feed" | "story";
@@ -17,6 +20,7 @@ export class StatusItemPresenter {
   constructor(view: StatusItemView, mode: "feed" | "story") {
     this.view = view;
     this.service = new StatusService();
+    this.userService = new UserService();
     this.mode = mode;
   }
 
@@ -59,6 +63,36 @@ export class StatusItemPresenter {
     } catch (error) {
       this.view.displayErrorMessage(
         `Failed to load ${this.mode} because of exception: ${error}`
+      );
+    }
+  }
+
+  async syncDisplayedUserFromRoute(
+    authToken: AuthToken | null,
+    displayedUserAliasParam: string | undefined,
+    displayedUser: User | null
+  ): Promise<void> {
+    // Guard conditions: if we don't have what we need, do nothing.
+    if (
+      !authToken ||
+      !displayedUserAliasParam ||
+      (displayedUser && displayedUserAliasParam === displayedUser.alias)
+    ) {
+      return;
+    }
+
+    try {
+      const toUser = await this.userService.getUser(
+        authToken,
+        displayedUserAliasParam
+      );
+
+      if (toUser) {
+        this.view.setDisplayedUser(toUser);
+      }
+    } catch (error) {
+      this.view.displayErrorMessage(
+        `Failed to load user because of exception: ${error}`
       );
     }
   }
