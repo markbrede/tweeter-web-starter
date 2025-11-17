@@ -17,8 +17,14 @@ export class AuthPresenter {
     this.userService = userService;
   }
 
+  // when should the login button be enabled
+  canSubmit(alias: string, password: string): boolean {
+    return !!alias && !!password;
+  }
+
+  // login uses canSubmit
   async login(alias: string, password: string, rememberMe: boolean, originalUrl?: string): Promise<void> {
-    if (!alias || !password) {
+    if (!this.canSubmit(alias, password)) {
       this.view.showError("Alias and password are required.");
       return;
     }

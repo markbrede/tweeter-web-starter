@@ -45,12 +45,12 @@ const Login = (props: Props) => {
     presenterRef.current = new AuthPresenter(view);
   }
 
-  const checkSubmitButtonStatus = (): boolean => {
-    return !alias || !password;
+  const isSubmitDisabled = (): boolean => {
+    return !presenterRef.current!.canSubmit(alias, password);
   };
 
   const loginOnEnter = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (event.key == "Enter" && !checkSubmitButtonStatus()) {
+    if (event.key == "Enter" && !isSubmitDisabled()) {
       doLogin();
     }
   };
@@ -95,7 +95,7 @@ const doLogin = async () => {
       inputFieldFactory={inputFieldFactory}
       switchAuthenticationMethodFactory={switchAuthenticationMethodFactory}
       setRememberMe={setRememberMe}
-      submitButtonDisabled={checkSubmitButtonStatus}
+      submitButtonDisabled={isSubmitDisabled}
       isLoading={isLoading}
       submit={doLogin}
     />
