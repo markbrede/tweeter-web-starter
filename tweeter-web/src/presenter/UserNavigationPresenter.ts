@@ -2,7 +2,6 @@ import { AuthToken, User } from "tweeter-shared";
 import { UserService } from "../model.service/UserService";
 import { Presenter, View } from "./Presenter";
 
-// Same duplication removal. Shared base view plus inherited presenter.
 export interface UserNavigationView extends View {
   setDisplayedUser: (user: User) => void;
   navigate: (url: string) => void;

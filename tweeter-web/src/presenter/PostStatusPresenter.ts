@@ -2,7 +2,6 @@ import { AuthToken, Status, User } from "tweeter-shared";
 import { StatusService } from "../model.service/StatusService";
 import { MessageView, Presenter } from "./Presenter";
 
-// Same cleanup as Navbar. I removed repeated view field handling and reusing the shared message-capable view contract.
 export interface PostStatusView extends MessageView {
   setIsLoading: (value: boolean) => void;
   clearPost: () => void;

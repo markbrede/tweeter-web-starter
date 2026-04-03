@@ -2,7 +2,6 @@ import { AuthToken } from "tweeter-shared";
 import { UserService } from "../model.service/UserService";
 import { MessageView, Presenter } from "./Presenter";
 
-// I removed duplicate toast/error methods from the view contract and duplicate _view ownership from the presenter. Technique is inheritance.
 export interface AppNavbarView extends MessageView {
   clearUserInfo: () => void;
   navigate: (url: string) => void;

@@ -2,7 +2,6 @@ import { AuthToken, User } from "tweeter-shared";
 import { FollowService } from "../model.service/FollowService";
 import { MessageView, Presenter } from "./Presenter";
 
-// Same exact inheritance cleanup. The internal follow/unfollow duplication is still there, but I will not fix that yet.
 export interface UserInfoView extends MessageView {
   setIsFollower: (value: boolean) => void;
   setFollowerCount: (value: number) => void;
