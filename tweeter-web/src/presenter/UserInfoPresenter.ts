@@ -1,22 +1,20 @@
 import { AuthToken, User } from "tweeter-shared";
 import { FollowService } from "../model.service/FollowService";
+import { MessageView, Presenter } from "./Presenter";
 
-export interface UserInfoView {
+// Same exact inheritance cleanup. The internal follow/unfollow duplication is still there, but I will not fix that yet.
+export interface UserInfoView extends MessageView {
   setIsFollower: (value: boolean) => void;
   setFollowerCount: (value: number) => void;
   setFolloweeCount: (value: number) => void;
   setIsLoading: (value: boolean) => void;
-  displayErrorMessage: (message: string) => void;
-  displayInfoMessage: (message: string, duration: number) => string;
-  deleteMessage: (messageId: string) => void;
 }
 
-export class UserInfoPresenter {
-  private _view: UserInfoView;
+export class UserInfoPresenter extends Presenter<UserInfoView> {
   private followService: FollowService;
 
   constructor(view: UserInfoView) {
-    this._view = view;
+    super(view);
     this.followService = new FollowService();
   }
 
@@ -27,7 +25,7 @@ export class UserInfoPresenter {
   ) {
     try {
       if (currentUser.equals(displayedUser)) {
-        this._view.setIsFollower(false);
+        this.view.setIsFollower(false);
       } else {
         const isFollower = await this.followService.getIsFollowerStatus(
           authToken,
@@ -35,7 +33,7 @@ export class UserInfoPresenter {
           displayedUser,
         );
 
-        this._view.setIsFollower(isFollower);
+        this.view.setIsFollower(isFollower);
       }
 
       const followeeCount = await this.followService.getFolloweeCount(
@@ -48,10 +46,10 @@ export class UserInfoPresenter {
         displayedUser,
       );
 
-      this._view.setFolloweeCount(followeeCount);
-      this._view.setFollowerCount(followerCount);
+      this.view.setFolloweeCount(followeeCount);
+      this.view.setFollowerCount(followerCount);
     } catch (error) {
-      this._view.displayErrorMessage(
+      this.view.displayErrorMessage(
         `Failed to load user info because of exception: ${error}`,
       );
     }
@@ -61,9 +59,9 @@ export class UserInfoPresenter {
     let toastId = "";
 
     try {
-      this._view.setIsLoading(true);
+      this.view.setIsLoading(true);
 
-      toastId = this._view.displayInfoMessage(
+      toastId = this.view.displayInfoMessage(
         `Following ${displayedUser.name}...`,
         0,
       );
@@ -73,16 +71,16 @@ export class UserInfoPresenter {
         displayedUser,
       );
 
-      this._view.setIsFollower(true);
-      this._view.setFollowerCount(followerCount);
-      this._view.setFolloweeCount(followeeCount);
+      this.view.setIsFollower(true);
+      this.view.setFollowerCount(followerCount);
+      this.view.setFolloweeCount(followeeCount);
     } catch (error) {
-      this._view.displayErrorMessage(
+      this.view.displayErrorMessage(
         `Failed to follow user because of exception: ${error}`,
       );
     } finally {
-      this._view.deleteMessage(toastId);
-      this._view.setIsLoading(false);
+      this.view.deleteMessage(toastId);
+      this.view.setIsLoading(false);
     }
   }
 
@@ -90,9 +88,9 @@ export class UserInfoPresenter {
     let toastId = "";
 
     try {
-      this._view.setIsLoading(true);
+      this.view.setIsLoading(true);
 
-      toastId = this._view.displayInfoMessage(
+      toastId = this.view.displayInfoMessage(
         `Unfollowing ${displayedUser.name}...`,
         0,
       );
@@ -102,16 +100,16 @@ export class UserInfoPresenter {
         displayedUser,
       );
 
-      this._view.setIsFollower(false);
-      this._view.setFollowerCount(followerCount);
-      this._view.setFolloweeCount(followeeCount);
+      this.view.setIsFollower(false);
+      this.view.setFollowerCount(followerCount);
+      this.view.setFolloweeCount(followeeCount);
     } catch (error) {
-      this._view.displayErrorMessage(
+      this.view.displayErrorMessage(
         `Failed to unfollow user because of exception: ${error}`,
       );
     } finally {
-      this._view.deleteMessage(toastId);
-      this._view.setIsLoading(false);
+      this.view.deleteMessage(toastId);
+      this.view.setIsLoading(false);
     }
   }
 }

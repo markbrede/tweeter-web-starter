@@ -1,20 +1,18 @@
 import { AuthToken, Status, User } from "tweeter-shared";
 import { StatusService } from "../model.service/StatusService";
+import { MessageView, Presenter } from "./Presenter";
 
-export interface PostStatusView {
-  displayErrorMessage: (message: string) => void;
-  displayInfoMessage: (message: string, duration: number) => string;
-  deleteMessage: (messageId: string) => void;
+// Same cleanup as Navbar. I removed repeated view field handling and reusing the shared message-capable view contract.
+export interface PostStatusView extends MessageView {
   setIsLoading: (value: boolean) => void;
   clearPost: () => void;
 }
 
-export class PostStatusPresenter {
-  private _view: PostStatusView;
+export class PostStatusPresenter extends Presenter<PostStatusView> {
   private service: StatusService;
 
   public constructor(view: PostStatusView) {
-    this._view = view;
+    super(view);
     this.service = new StatusService();
   }
 
@@ -26,9 +24,9 @@ export class PostStatusPresenter {
     let postingStatusToastId = "";
 
     try {
-      this._view.setIsLoading(true);
+      this.view.setIsLoading(true);
 
-      postingStatusToastId = this._view.displayInfoMessage(
+      postingStatusToastId = this.view.displayInfoMessage(
         "Posting status...",
         0,
       );
@@ -37,15 +35,15 @@ export class PostStatusPresenter {
 
       await this.service.postStatus(authToken, status);
 
-      this._view.clearPost();
-      this._view.displayInfoMessage("Status posted!", 2000);
+      this.view.clearPost();
+      this.view.displayInfoMessage("Status posted!", 2000);
     } catch (error) {
-      this._view.displayErrorMessage(
+      this.view.displayErrorMessage(
         `Failed to post the status because of exception: ${error}`,
       );
     } finally {
-      this._view.deleteMessage(postingStatusToastId);
-      this._view.setIsLoading(false);
+      this.view.deleteMessage(postingStatusToastId);
+      this.view.setIsLoading(false);
     }
   }
 

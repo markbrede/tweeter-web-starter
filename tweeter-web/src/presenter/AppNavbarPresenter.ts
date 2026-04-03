@@ -1,37 +1,32 @@
 import { AuthToken } from "tweeter-shared";
 import { UserService } from "../model.service/UserService";
+import { MessageView, Presenter } from "./Presenter";
 
-export interface AppNavbarView {
-  displayInfoMessage: (message: string, duration: number) => string;
-  displayErrorMessage: (message: string) => void;
-  deleteMessage: (id: string) => void;
+// I removed duplicate toast/error methods from the view contract and duplicate _view ownership from the presenter. Technique is inheritance.
+export interface AppNavbarView extends MessageView {
   clearUserInfo: () => void;
   navigate: (url: string) => void;
 }
 
-export class AppNavbarPresenter {
-  private _view: AppNavbarView;
+export class AppNavbarPresenter extends Presenter<AppNavbarView> {
   private userService: UserService;
 
   constructor(view: AppNavbarView) {
-    this._view = view;
+    super(view);
     this.userService = new UserService();
   }
 
   public async logOut(authToken: AuthToken) {
-    const loggingOutToastId = this._view.displayInfoMessage(
-      "Logging Out...",
-      0,
-    );
+    const loggingOutToastId = this.view.displayInfoMessage("Logging Out...", 0);
 
     try {
       await this.userService.logout(authToken);
 
-      this._view.deleteMessage(loggingOutToastId);
-      this._view.clearUserInfo();
-      this._view.navigate("/login");
+      this.view.deleteMessage(loggingOutToastId);
+      this.view.clearUserInfo();
+      this.view.navigate("/login");
     } catch (error) {
-      this._view.displayErrorMessage(
+      this.view.displayErrorMessage(
         `Failed to log user out because of exception: ${error}`,
       );
     }
