@@ -1,25 +1,13 @@
-import { AuthToken, User } from "tweeter-shared";
-import { UserService } from "../model.service/UserService";
-import { Presenter, View } from "./Presenter";
+import {
+  AuthenticationPresenter,
+  AuthenticationView,
+} from "./AuthenticationPresenter";
 
-// I removed duplicated _view storage and used inheritance plus the shared base View interface.
-export interface LoginView extends View {
-  setIsLoading: (value: boolean) => void;
-  updateUserInfo: (
-    currentUser: User,
-    displayedUser: User,
-    authToken: AuthToken,
-    rememberMe: boolean,
-  ) => void;
-  navigate: (url: string) => void;
-}
+export interface LoginView extends AuthenticationView {}
 
-export class LoginPresenter extends Presenter<LoginView> {
-  private service: UserService;
-
+export class LoginPresenter extends AuthenticationPresenter<LoginView> {
   public constructor(view: LoginView) {
     super(view);
-    this.service = new UserService();
   }
 
   public isSubmitDisabled(alias: string, password: string): boolean {
@@ -32,24 +20,11 @@ export class LoginPresenter extends Presenter<LoginView> {
     rememberMe: boolean,
     originalUrl: string | undefined,
   ) {
-    try {
-      this.view.setIsLoading(true);
-
-      const [user, authToken] = await this.service.login(alias, password);
-
-      this.view.updateUserInfo(user, user, authToken, rememberMe);
-
-      if (originalUrl) {
-        this.view.navigate(originalUrl);
-      } else {
-        this.view.navigate(`/feed/${user.alias}`);
-      }
-    } catch (error) {
-      this.view.displayErrorMessage(
-        `Failed to log user in because of exception: ${error}`,
-      );
-    } finally {
-      this.view.setIsLoading(false);
-    }
+    await this.doAuthenticationOperation(
+      async () => this.userService.login(alias, password),
+      rememberMe,
+      (user) => originalUrl ?? `/feed/${user.alias}`,
+      "log user in",
+    );
   }
 }

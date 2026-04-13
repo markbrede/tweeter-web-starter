@@ -1,40 +1,41 @@
-import { Status } from "tweeter-shared";
 import { useState, useEffect, useRef } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useParams } from "react-router-dom";
-import StatusItem from "../statusItem/StatusItem";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfo } from "../userInfo/UserInfoHook";
 import { useUserInfoActions } from "../userInfo/UserInfoActionsHook";
-import { StatusItemPresenter } from "../../presenter/StatusItemPresenter";
-import { PagedItemView } from "../../presenter/PagedItemPresenter";
+import {
+  PagedItemPresenter,
+  PagedItemView,
+} from "../../presenter/PagedItemPresenter";
+import { Service } from "../../model.service/Service";
 
-interface Props {
+interface Props<T> {
   itemDescription: string;
   featurePath: string;
-  presenterFactory: (view: PagedItemView<Status>) => StatusItemPresenter;
+  presenterFactory: (view: PagedItemView<T>) => PagedItemPresenter<T, Service>;
+  itemComponentFactory: (item: T, featurePath: string) => JSX.Element;
 }
 
-const StatusItemScroller = (props: Props) => {
+const ItemScroller = <T,>(props: Props<T>) => {
   const { displayErrorMessage } = useMessageActions();
-  const [items, setItems] = useState<Status[]>([]);
+  const [items, setItems] = useState<T[]>([]);
 
   const { displayedUser, authToken } = useUserInfo();
   const { setDisplayedUser } = useUserInfoActions();
   const { displayedUser: displayedUserAliasParam } = useParams();
 
-  const listener: PagedItemView<Status> = {
-    addItems: (newItems: Status[]) =>
+  const listener: PagedItemView<T> = {
+    addItems: (newItems: T[]) =>
       setItems((previousItems) => [...previousItems, ...newItems]),
-    displayErrorMessage: displayErrorMessage,
+    displayErrorMessage,
   };
 
-  const presenterRef = useRef<StatusItemPresenter | null>(null);
+  const presenterRef = useRef<PagedItemPresenter<T, Service> | null>(null);
   if (!presenterRef.current) {
     presenterRef.current = props.presenterFactory(listener);
   }
 
-  // Update the displayed user context variable whenever the displayedUser url parameter changes. This allows browser forward and back buttons to work correctly.
   useEffect(() => {
     if (
       authToken &&
@@ -42,7 +43,7 @@ const StatusItemScroller = (props: Props) => {
       displayedUserAliasParam != displayedUser!.alias
     ) {
       presenterRef
-        .current!.getUser(authToken!, displayedUserAliasParam!)
+        .current!.getUser(authToken, displayedUserAliasParam)
         .then((toUser) => {
           if (toUser) {
             setDisplayedUser(toUser);
@@ -51,7 +52,6 @@ const StatusItemScroller = (props: Props) => {
     }
   }, [displayedUserAliasParam]);
 
-  // Initialize the component whenever the displayed user changes
   useEffect(() => {
     reset();
     loadMoreItems();
@@ -80,7 +80,7 @@ const StatusItemScroller = (props: Props) => {
             key={index}
             className="row mb-3 mx-0 px-0 border rounded bg-white"
           >
-            <StatusItem status={item} featurePath={props.featurePath} />
+            {props.itemComponentFactory(item, props.featurePath)}
           </div>
         ))}
       </InfiniteScroll>
@@ -88,4 +88,4 @@ const StatusItemScroller = (props: Props) => {
   );
 };
 
-export default StatusItemScroller;
+export default ItemScroller;

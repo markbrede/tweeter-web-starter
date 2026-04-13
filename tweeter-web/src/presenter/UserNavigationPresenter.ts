@@ -25,7 +25,7 @@ export class UserNavigationPresenter extends Presenter<UserNavigationView> {
     displayedUser: User,
     href: string,
   ) {
-    try {
+    await this.doFailureReportingOperation(async () => {
       const alias = this.extractAlias(href);
 
       const toUser = await this.userService.getUser(authToken, alias);
@@ -37,10 +37,6 @@ export class UserNavigationPresenter extends Presenter<UserNavigationView> {
         this.view.setDisplayedUser(toUser);
         this.view.navigate(`${featurePath}/${toUser.alias}`);
       }
-    } catch (error) {
-      this.view.displayErrorMessage(
-        `Failed to get user because of exception: ${error}`,
-      );
-    }
+    }, "get user");
   }
 }
