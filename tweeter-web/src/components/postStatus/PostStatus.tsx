@@ -7,7 +7,11 @@ import {
   PostStatusPresenter,
 } from "../../presenter/PostStatusPresenter";
 
-const PostStatus = () => {
+interface Props {
+  presenter?: PostStatusPresenter;
+}
+
+const PostStatus = (props: Props) => {
   const { displayErrorMessage, displayInfoMessage, deleteMessage } =
     useMessageActions();
 
@@ -23,7 +27,9 @@ const PostStatus = () => {
     clearPost: () => setPost(""),
   };
 
-  const presenterRef = useRef<PostStatusPresenter | null>(null);
+  const presenterRef = useRef<PostStatusPresenter | null>(
+    props.presenter ?? null,
+  );
   if (!presenterRef.current) {
     presenterRef.current = new PostStatusPresenter(listener);
   }

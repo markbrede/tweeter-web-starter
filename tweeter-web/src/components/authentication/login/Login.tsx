@@ -10,6 +10,7 @@ import { LoginView, LoginPresenter } from "../../../presenter/LoginPresenter";
 
 interface Props {
   originalUrl?: string;
+  presenter?: LoginPresenter; // I will remove after passoff
 }
 
 const Login = (props: Props) => {
@@ -29,7 +30,7 @@ const Login = (props: Props) => {
     navigate,
   };
 
-  const presenterRef = useRef<LoginPresenter | null>(null);
+  const presenterRef = useRef<LoginPresenter | null>(props.presenter ?? null);
   if (!presenterRef.current) {
     presenterRef.current = new LoginPresenter(listener);
   }
