@@ -14,14 +14,14 @@ export abstract class LoadingMessagePresenter<
   ) {
     let messageId = "";
 
+    this.view.setIsLoading(true);
+
     try {
-      this.view.setIsLoading(true);
       messageId = this.view.displayInfoMessage(infoMessage, 0);
-      await operation();
-    } catch (error) {
-      this.view.displayErrorMessage(
-        `Failed to ${operationDescription} because of exception: ${error}`,
-      );
+
+      await this.doFailureReportingOperation(async () => {
+        await operation();
+      }, operationDescription);
     } finally {
       this.view.deleteMessage(messageId);
       this.view.setIsLoading(false);
