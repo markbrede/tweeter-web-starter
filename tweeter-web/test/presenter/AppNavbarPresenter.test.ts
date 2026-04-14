@@ -27,7 +27,7 @@ describe("AppNavbarPresenter", () => {
     );
     when(
       mockAppNavbarPresenterView.displayInfoMessage(anything(), 0),
-    ).thenReturn("mesageId123");
+    ).thenReturn("messageId123");
 
     const appNavbarPresenterSpy = spy(
       new AppNavbarPresenter(mockAppNavbarPresenterViewInstance),
@@ -56,7 +56,7 @@ describe("AppNavbarPresenter", () => {
   it("tells the view to clear the info message that was displayed previously, clears the user info, and navigates to the login page when successful", async () => {
     await appNavbarPresenter.logOut(authToken);
 
-    verify(mockAppNavbarPresenterView.deleteMessage("mesageId123")).once();
+    verify(mockAppNavbarPresenterView.deleteMessage("messageId123")).once();
     verify(mockAppNavbarPresenterView.clearUserInfo()).once();
     verify(mockAppNavbarPresenterView.navigate("/login")).once();
 

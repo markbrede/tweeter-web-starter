@@ -30,7 +30,7 @@ describe("PostStatusPresenter", () => {
     );
     when(
       mockPostStatusPresenterView.displayInfoMessage(anything(), 0),
-    ).thenReturn("mesageId123");
+    ).thenReturn("messageId123");
 
     const postStatusPresenterSpy = spy(
       new PostStatusPresenter(mockPostStatusPresenterViewInstance),
@@ -62,7 +62,7 @@ describe("PostStatusPresenter", () => {
   it("tells the view to clear the info message that was displayed previously, clear the post, and display a status posted message when posting the status is successful", async () => {
     await postStatusPresenter.submitPost(authToken, postText, currentUser);
 
-    verify(mockPostStatusPresenterView.deleteMessage("mesageId123")).once();
+    verify(mockPostStatusPresenterView.deleteMessage("messageId123")).once();
     verify(mockPostStatusPresenterView.clearPost()).once();
     verify(
       mockPostStatusPresenterView.displayInfoMessage("Status posted!", 2000),
@@ -82,7 +82,7 @@ describe("PostStatusPresenter", () => {
       ),
     ).once();
 
-    verify(mockPostStatusPresenterView.deleteMessage("mesageId123")).once();
+    verify(mockPostStatusPresenterView.deleteMessage("messageId123")).once();
     verify(mockPostStatusPresenterView.clearPost()).never();
     verify(
       mockPostStatusPresenterView.displayInfoMessage("Status posted!", 2000),
