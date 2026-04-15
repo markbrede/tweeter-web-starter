@@ -1,15 +1,24 @@
-import { AuthToken, Status, FakeData } from "tweeter-shared";
+import {
+  AuthToken,
+  PagedStatusItemRequest,
+  PostStatusRequest,
+  Status,
+} from "tweeter-shared";
 import { Service } from "./Service";
+import { ServerFacade } from "../model.net/ServerFacade";
 
 export class StatusService implements Service {
+  private serverFacade = new ServerFacade();
+
   public async loadMoreFeedStatuses(
     authToken: AuthToken,
     userAlias: string,
     pageSize: number,
     lastItem: Status | null,
   ): Promise<[Status[], boolean]> {
-    // TODO: Replace with the result of calling server FEED
-    return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
+    return this.serverFacade.getMoreFeedItems(
+      new PagedStatusItemRequest(authToken.token, userAlias, pageSize, lastItem)
+    );
   }
 
   public async loadMoreStoryStatuses(
@@ -18,17 +27,17 @@ export class StatusService implements Service {
     pageSize: number,
     lastItem: Status | null,
   ): Promise<[Status[], boolean]> {
-    // TODO: Replace with the result of calling server STORY
-    return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
+    return this.serverFacade.getMoreStoryItems(
+      new PagedStatusItemRequest(authToken.token, userAlias, pageSize, lastItem)
+    );
   }
 
   public async postStatus(
     authToken: AuthToken,
     newStatus: Status,
   ): Promise<void> {
-    // Pause so we can see the logging out message. Remove when connected to the server
-    await new Promise((f) => setTimeout(f, 2000));
-
-    // TODO: Call the server to post the status
+    return this.serverFacade.postStatus(
+      new PostStatusRequest(authToken.token, newStatus)
+    );
   }
 }

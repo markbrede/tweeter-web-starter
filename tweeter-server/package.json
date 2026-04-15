@@ -8,7 +8,9 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "tweeter-shared": "file:../tweeter-shared"
+    "date-fns": "^4.1.0",
+    "tweeter-shared": "file:../tweeter-shared",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",

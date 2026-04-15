@@ -126,6 +126,162 @@ Resources:
                 responses: *commonAmazonResponses
               responses: *commonSwaggerResponses
 
+          /user/login:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${userLoginFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /follow/is-follower:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${followIsFollowerFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /follow/followee-count:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${followGetFolloweeCountFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /follow/follower-count:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${followGetFollowerCountFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /follow/followees:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${followGetFolloweesFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /follow/followers:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${followGetFollowersFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /status/feed:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${statusGetFeedFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /status/story:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${statusGetStoryFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /follow/follow:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${followFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /follow/unfollow:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${unfollowFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /status/post:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${postStatusFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /user/logout:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${userLogoutFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
           #
           # TODO: ADD MORE ENDPOINT DEFINITIONS HERE
           #
@@ -182,6 +338,174 @@ Resources:
             Path: /user/create
             Method: POST
 
+  userLoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userLoginFunction
+      Handler: handlers/users/UserLoginHandler.userLoginHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /user/login
+            Method: POST
+
+  followIsFollowerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: followIsFollowerFunction
+      Handler: handlers/follows/IsFollowerStatusHandler.isFollowerStatusHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /follow/is-follower
+            Method: POST
+
+  followGetFolloweeCountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: followGetFolloweeCountFunction
+      Handler: handlers/follows/GetFolloweeCountHandler.getFolloweeCountHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /follow/followee-count
+            Method: POST
+
+  followGetFollowerCountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: followGetFollowerCountFunction
+      Handler: handlers/follows/GetFollowerCountHandler.getFollowerCountHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /follow/follower-count
+            Method: POST
+
+  followGetFolloweesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: followGetFolloweesFunction
+      Handler: handlers/follows/GetFolloweesHandler.getFolloweesHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /follow/followees
+            Method: POST
+
+  followGetFollowersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: followGetFollowersFunction
+      Handler: handlers/follows/GetFollowersHandler.getFollowersHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /follow/followers
+            Method: POST
+
+  statusGetFeedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: statusGetFeedFunction
+      Handler: handlers/statuses/GetFeedHandler.getFeedHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /status/feed
+            Method: POST
+
+  statusGetStoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: statusGetStoryFunction
+      Handler: handlers/statuses/GetStoryHandler.getStoryHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /status/story
+            Method: POST
+
+  followFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: followFunction
+      Handler: handlers/follows/FollowHandler.followHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /follow/follow
+            Method: POST
+
+  unfollowFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: unfollowFunction
+      Handler: handlers/follows/UnfollowHandler.unfollowHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /follow/unfollow
+            Method: POST
+
+  postStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: postStatusFunction
+      Handler: handlers/statuses/PostStatusHandler.postStatusHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /status/post
+            Method: POST
+
+  userLogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userLogoutFunction
+      Handler: handlers/users/UserLogoutHandler.userLogoutHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /user/logout
+            Method: POST
+
   #
   # TODO: ADD MORE WEB API LAMBDA DEFINITIONS HERE
   #
@@ -201,71 +525,12 @@ Resources:
   #         Properties:
   #           Queue: !GetAtt MyQueue.Arn
   #           Enabled: true
-
   #
   # DynamoDB Tables
   #
-  visitTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: visit
-      AttributeDefinitions:
-        - AttributeName: person_name
-          AttributeType: S
-        - AttributeName: place_name
-          AttributeType: S
-      KeySchema:
-        - AttributeName: person_name
-          KeyType: HASH
-        - AttributeName: place_name
-          KeyType: RANGE
-      BillingMode: PROVISIONED
-      ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
-      GlobalSecondaryIndexes:
-        - IndexName: place_index
-          KeySchema:
-            - AttributeName: place_name
-              KeyType: HASH
-            - AttributeName: person_name
-              KeyType: RANGE
-          ProvisionedThroughput:
-            ReadCapacityUnits: 1
-            WriteCapacityUnits: 1
-          Projection:
-            ProjectionType: ALL
+  # Milestone 4A: add table definitions here
+  #
 
-  followTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: follow
-      AttributeDefinitions:
-        - AttributeName: follower_alias
-          AttributeType: S
-        - AttributeName: followee_alias
-          AttributeType: S
-      KeySchema:
-        - AttributeName: follower_alias
-          KeyType: HASH
-        - AttributeName: followee_alias
-          KeyType: RANGE
-      BillingMode: PROVISIONED
-      ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
-      GlobalSecondaryIndexes:
-        - IndexName: follow_index
-          KeySchema:
-            - AttributeName: followee_alias
-              KeyType: HASH
-            - AttributeName: follower_alias
-              KeyType: RANGE
-          ProvisionedThroughput:
-            ReadCapacityUnits: 1
-            WriteCapacityUnits: 1
-          Projection:
-            ProjectionType: ALL
 
   #
   # TODO: ADD MORE TABLE DEFINITIONS HERE
