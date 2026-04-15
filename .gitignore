@@ -23,3 +23,6 @@ yarn-debug.log*
 yarn-error.log*
 
 /dist
+# Tweeter server build artifacts
+tweeter-server/dist/
+tweeter-server/.aws-sam/
