@@ -1,22 +1,14 @@
-import { AuthToken, Status, User } from "tweeter-shared";
-import { ServerFacade } from "../../src/model.net/ServerFacade";
+import "isomorphic-fetch";
+import { AuthToken } from "tweeter-shared";
 import { StatusService } from "../../src/model.service/StatusService";
 
-describe("StatusService", () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
+jest.setTimeout(15000);
 
-  it("loadMoreStoryStatuses delegates to ServerFacade with the correct request values", async () => {
-    const authToken = new AuthToken("token123", 111);
-    const user = new User("Allen", "Anderson", "@allen", "image-url");
-    const status = new Status("story post", user, 123);
-
-    const facadeSpy = jest
-      .spyOn(ServerFacade.prototype, "getMoreStoryItems")
-      .mockResolvedValue([[status], false]);
-
+describe("StatusService integration test", () => {
+  it("loadMoreStoryStatuses returns a successful story page", async () => {
     const service = new StatusService();
+    const authToken = new AuthToken("token123", Date.now());
+
     const [items, hasMore] = await service.loadMoreStoryStatuses(
       authToken,
       "@allen",
@@ -24,14 +16,9 @@ describe("StatusService", () => {
       null
     );
 
-    expect(items).toHaveLength(1);
-    expect(items[0].post).toBe("story post");
-    expect(hasMore).toBe(false);
-
-    const request = facadeSpy.mock.calls[0][0];
-    expect(request.authToken).toBe("token123");
-    expect(request.userAlias).toBe("@allen");
-    expect(request.pageSize).toBe(10);
-    expect(request.lastItem).toBeNull();
+    expect(items.length).toBe(10);
+    expect(hasMore).toBe(true);
+    expect(items[0].user.alias).toBe("@allen");
+    expect(items[0].post).toContain("Post 0 0");
   });
 });
