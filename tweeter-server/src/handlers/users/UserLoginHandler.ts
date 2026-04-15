@@ -6,6 +6,10 @@ interface UserLoginRequest {
 }
 
 export const userLoginHandler = async (request: UserLoginRequest) => {
+  if (!request) {
+    throw new Error("bad-request: missing request");
+  }
+
   const [user, authToken] = new UserService().login(
     request.alias,
     request.password

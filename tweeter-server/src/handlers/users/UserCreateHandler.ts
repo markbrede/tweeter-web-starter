@@ -10,6 +10,10 @@ interface UserCreateRequest {
 }
 
 export const userCreateHandler = async (request: UserCreateRequest) => {
+  if (!request) {
+    throw new Error("bad-request: missing request");
+  }
+
   const [user, authToken] = new UserService().createUser(
     request.firstName,
     request.lastName,
