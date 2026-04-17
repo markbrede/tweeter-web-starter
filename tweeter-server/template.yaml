@@ -13,6 +13,16 @@ Globals:
       - !Ref tweeterLayer
     Timeout: 30
     MemorySize: 128
+    Environment:
+      Variables:
+        USERS_TABLE: tweeter_users
+        AUTH_TABLE: tweeter_auth
+        FOLLOWS_TABLE: tweeter_follows
+        FOLLOWS_FOLLOWEE_INDEX: followee_index
+        STORY_TABLE: tweeter_story
+        FEED_TABLE: tweeter_feed
+        AUTH_TIMEOUT_MINUTES: 60
+        S3_BUCKET: my-cs340-bucket-markbrede
 
 #
 # Reusable blocks of configuration. These are referenced throughout the template to avoid duplication.
@@ -528,10 +538,103 @@ Resources:
   #
   # DynamoDB Tables
   #
-  # Milestone 4A: add table definitions here
-  #
 
+  usersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: tweeter_users
+      AttributeDefinitions:
+        - AttributeName: alias
+          AttributeType: S
+      KeySchema:
+        - AttributeName: alias
+          KeyType: HASH
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
 
-  #
-  # TODO: ADD MORE TABLE DEFINITIONS HERE
-  #
+  authTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: tweeter_auth
+      AttributeDefinitions:
+        - AttributeName: token
+          AttributeType: S
+      KeySchema:
+        - AttributeName: token
+          KeyType: HASH
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  followsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: tweeter_follows
+      AttributeDefinitions:
+        - AttributeName: follower_alias
+          AttributeType: S
+        - AttributeName: followee_alias
+          AttributeType: S
+      KeySchema:
+        - AttributeName: follower_alias
+          KeyType: HASH
+        - AttributeName: followee_alias
+          KeyType: RANGE
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      GlobalSecondaryIndexes:
+        - IndexName: followee_index
+          KeySchema:
+            - AttributeName: followee_alias
+              KeyType: HASH
+            - AttributeName: follower_alias
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+
+  storyTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: tweeter_story
+      AttributeDefinitions:
+        - AttributeName: user_alias
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: user_alias
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  feedTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: tweeter_feed
+      AttributeDefinitions:
+        - AttributeName: user_alias
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: user_alias
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+

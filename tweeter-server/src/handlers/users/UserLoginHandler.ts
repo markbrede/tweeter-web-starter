@@ -10,7 +10,7 @@ export const userLoginHandler = async (request: UserLoginRequest) => {
     throw new Error("bad-request: missing request");
   }
 
-  const [user, authToken] = new UserService().login(
+  const [user, authToken] = await new UserService().login(
     request.alias,
     request.password
   );

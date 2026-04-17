@@ -1,4 +1,5 @@
 import { User } from "tweeter-shared";
+import { AuthorizationService } from "../../services/AuthorizationService";
 import { FollowService } from "../../services/FollowService";
 
 interface PagedUserItemRequest {
@@ -9,11 +10,13 @@ interface PagedUserItemRequest {
 }
 
 export const getFollowersHandler = async (request: PagedUserItemRequest) => {
+  await new AuthorizationService().authorize(request.authToken);
+
   const lastItem = request.lastItem
     ? User.fromJson(JSON.stringify(request.lastItem))
     : null;
 
-  const [items, hasMore] = new FollowService().getFollowers(
+  const [items, hasMore] = await new FollowService().getFollowers(
     request.userAlias,
     request.pageSize,
     lastItem

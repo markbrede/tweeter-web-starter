@@ -17,7 +17,7 @@ export class UserService implements Service {
     authToken: AuthToken,
     alias: string,
   ): Promise<User | null> {
-    return this.serverFacade.getUser(new GetUserRequest(alias));
+    return this.serverFacade.getUser(new GetUserRequest(authToken.token, alias));
   }
 
   public async login(

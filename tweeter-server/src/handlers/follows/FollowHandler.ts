@@ -1,3 +1,4 @@
+import { AuthorizationService } from "../../services/AuthorizationService";
 import { FollowService } from "../../services/FollowService";
 
 interface FollowActionRequest {
@@ -6,7 +7,12 @@ interface FollowActionRequest {
 }
 
 export const followHandler = async (request: FollowActionRequest) => {
-  const [followerCount, followeeCount] = new FollowService().follow(
+  const currentUserAlias = await new AuthorizationService().authorize(
+    request.authToken
+  );
+
+  const [followerCount, followeeCount] = await new FollowService().follow(
+    currentUserAlias,
     request.userAlias
   );
 

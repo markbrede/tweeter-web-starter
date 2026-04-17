@@ -1,3 +1,4 @@
+import { AuthorizationService } from "../../services/AuthorizationService";
 import { UserService } from "../../services/UserService";
 
 interface LogoutRequest {
@@ -5,7 +6,8 @@ interface LogoutRequest {
 }
 
 export const userLogoutHandler = async (request: LogoutRequest) => {
-  new UserService().logout(request.authToken);
+  await new AuthorizationService().authorize(request.authToken);
+  await new UserService().logout(request.authToken);
 
   return {
     success: true,

@@ -1,6 +1,12 @@
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
+import { DAOFactory } from "../dao/factory/DAOFactory";
+import { DAOFactoryProvider } from "../dao/factory/DAOFactoryProvider";
 
 export class UserService {
+  public constructor(
+    private readonly daoFactory: DAOFactory = DAOFactoryProvider.getDAOFactory()
+  ) {}
+
   private validateRequiredString(value: string | undefined, fieldName: string): string {
     const trimmed = value?.trim();
 
@@ -11,18 +17,18 @@ export class UserService {
     return trimmed;
   }
 
-  public getUser(alias: string): User | null {
-    return FakeData.instance.findUserByAlias(alias);
+  public async getUser(alias: string): Promise<User | null> {
+    return this.daoFactory.getUserDAO().getUser(alias);
   }
 
-  public createUser(
+  public async createUser(
     firstName: string,
     lastName: string,
     alias: string,
     password: string,
     imageStringBase64: string,
     imageFileExtension: string
-  ): [User, AuthToken] {
+  ): Promise<[User, AuthToken]> {
     const validatedFirstName = this.validateRequiredString(firstName, "firstName");
     const validatedLastName = this.validateRequiredString(lastName, "lastName");
     const validatedAlias = this.validateRequiredString(alias, "alias");
@@ -40,28 +46,26 @@ export class UserService {
       throw new Error("bad-request: alias must begin with @");
     }
 
-    if (validatedPassword.length === 0) {
-      throw new Error("bad-request: password must not be empty");
-    }
+    const imageUrl = await this.daoFactory.getS3DAO().putImage(
+      `${validatedAlias.substring(1)}-${Date.now()}.${validatedImageFileExtension}`,
+      validatedImageStringBase64,
+      validatedImageFileExtension
+    );
 
-    if (validatedFirstName.length === 0 || validatedLastName.length === 0) {
-      throw new Error("bad-request: firstName and lastName must not be empty");
-    }
+    const user = await this.daoFactory.getUserDAO().registerUser(
+      validatedFirstName,
+      validatedLastName,
+      validatedAlias,
+      validatedPassword,
+      imageUrl
+    );
 
-    if (validatedImageStringBase64.length === 0 || validatedImageFileExtension.length === 0) {
-      throw new Error("bad-request: image data is required");
-    }
+    const authToken = await this.daoFactory.getAuthDAO().createAuthToken(validatedAlias);
 
-    const user = FakeData.instance.firstUser;
-
-    if (user === null) {
-      throw new Error("internal-server-error: unable to create user");
-    }
-
-    return [user, FakeData.instance.authToken];
+    return [user, authToken];
   }
 
-  public login(alias: string, password: string): [User, AuthToken] {
+  public async login(alias: string, password: string): Promise<[User, AuthToken]> {
     const validatedAlias = this.validateRequiredString(alias, "alias");
     const validatedPassword = this.validateRequiredString(password, "password");
 
@@ -69,17 +73,21 @@ export class UserService {
       throw new Error("bad-request: alias must begin with @");
     }
 
-    const user = FakeData.instance.firstUser;
+    const user = await this.daoFactory
+      .getUserDAO()
+      .authenticateUser(validatedAlias, validatedPassword);
 
     if (user === null) {
-      throw new Error("internal-server-error: unable to log user in");
+      throw new Error("bad-request: invalid alias or password");
     }
 
-    return [user, FakeData.instance.authToken];
+    const authToken = await this.daoFactory.getAuthDAO().createAuthToken(user.alias);
+
+    return [user, authToken];
   }
 
-  public logout(authToken: string): void {
-    this.validateRequiredString(authToken, "authToken");
-    return;
+  public async logout(authToken: string): Promise<void> {
+    const validatedAuthToken = this.validateRequiredString(authToken, "authToken");
+    await this.daoFactory.getAuthDAO().deleteAuthToken(validatedAuthToken);
   }
 }

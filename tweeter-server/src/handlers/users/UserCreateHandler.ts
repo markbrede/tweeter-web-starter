@@ -14,7 +14,7 @@ export const userCreateHandler = async (request: UserCreateRequest) => {
     throw new Error("bad-request: missing request");
   }
 
-  const [user, authToken] = new UserService().createUser(
+  const [user, authToken] = await new UserService().createUser(
     request.firstName,
     request.lastName,
     request.alias,
