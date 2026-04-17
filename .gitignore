@@ -26,3 +26,11 @@ yarn-error.log*
 # Tweeter server build artifacts
 tweeter-server/dist/
 tweeter-server/.aws-sam/
+
+# Tweeter server generated artifacts
+tweeter-server/node_modules/
+tweeter-server/layer/nodejs/node_modules/
+
+# Tweeter server generated artifacts
+tweeter-server/node_modules/
+tweeter-server/layer/nodejs/node_modules/
