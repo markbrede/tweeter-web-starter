@@ -1,4 +1,10 @@
-import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  BatchWriteCommand,
+  BatchWriteCommandInput,
+  BatchWriteCommandOutput,
+  PutCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Status, User } from "tweeter-shared";
 import { StatusDAO } from "../interfaces/StatusDAO";
 import { DynamoDBDAO } from "./DynamoDBDAO";
@@ -42,16 +48,33 @@ export class DynamoDBStatusDAO extends DynamoDBDAO implements StatusDAO {
     );
   }
 
-  public async addStatusToFeed(
+  public async addStatusToFeeds(
     newStatus: Status,
-    feedOwnerAlias: string
+    feedOwnerAliases: string[]
   ): Promise<void> {
-    await this.documentClient.send(
-      new PutCommand({
-        TableName: this.feedTableName,
-        Item: this.toStatusItem(newStatus, feedOwnerAlias),
-      })
-    );
+    if (feedOwnerAliases.length === 0) {
+      return;
+    }
+
+    for (let i = 0; i < feedOwnerAliases.length; i += 25) {
+      const batchAliases = feedOwnerAliases.slice(i, i + 25);
+
+      const params: BatchWriteCommandInput = {
+        RequestItems: {
+          [this.feedTableName]: batchAliases.map((alias) => ({
+            PutRequest: {
+              Item: this.toStatusItem(newStatus, alias),
+            },
+          })),
+        },
+      };
+
+      let response = await this.documentClient.send(
+        new BatchWriteCommand(params)
+      );
+
+      await this.putUnprocessedItems(response, params);
+    }
   }
 
   private async getStatusPage(
@@ -91,6 +114,27 @@ export class DynamoDBStatusDAO extends DynamoDBDAO implements StatusDAO {
       }) ?? [];
 
     return [items, response.LastEvaluatedKey !== undefined];
+  }
+
+  private async putUnprocessedItems(
+    response: BatchWriteCommandOutput,
+    params: BatchWriteCommandInput
+  ): Promise<void> {
+    let delay = 10;
+
+    while (
+      response.UnprocessedItems !== undefined &&
+      Object.keys(response.UnprocessedItems).length > 0
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      if (delay < 1000) {
+        delay += 100;
+      }
+
+      params.RequestItems = response.UnprocessedItems;
+      response = await this.documentClient.send(new BatchWriteCommand(params));
+    }
   }
 
   private toStatusItem(newStatus: Status, userAlias: string): StatusItem {

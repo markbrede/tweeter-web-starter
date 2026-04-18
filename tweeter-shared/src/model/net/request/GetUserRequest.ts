@@ -1,17 +1,5 @@
-export class GetUserRequest {
-  private _authToken: string;
-  private _alias: string;
+import type { TweeterRequest } from "./TweeterRequest";
 
-  public constructor(authToken: string, alias: string) {
-    this._authToken = authToken;
-    this._alias = alias;
-  }
-
-  public get authToken(): string {
-    return this._authToken;
-  }
-
-  public get alias(): string {
-    return this._alias;
-  }
+export class GetUserRequest implements TweeterRequest {
+  constructor(public authToken: string, public alias: string) {}
 }

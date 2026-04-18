@@ -55,7 +55,13 @@ export class UserInfoPresenter extends LoadingMessagePresenter<UserInfoView> {
   public async followUser(authToken: AuthToken, displayedUser: User) {
     await this.doFailureReportingOperationWithMessage(
       async () => {
-        const [followerCount, followeeCount] = await this.followService.follow(
+        await this.followService.follow(authToken, displayedUser);
+
+        const followeeCount = await this.followService.getFolloweeCount(
+          authToken,
+          displayedUser,
+        );
+        const followerCount = await this.followService.getFollowerCount(
           authToken,
           displayedUser,
         );
@@ -72,8 +78,16 @@ export class UserInfoPresenter extends LoadingMessagePresenter<UserInfoView> {
   public async unfollowUser(authToken: AuthToken, displayedUser: User) {
     await this.doFailureReportingOperationWithMessage(
       async () => {
-        const [followerCount, followeeCount] =
-          await this.followService.unfollow(authToken, displayedUser);
+        await this.followService.unfollow(authToken, displayedUser);
+
+        const followeeCount = await this.followService.getFolloweeCount(
+          authToken,
+          displayedUser,
+        );
+        const followerCount = await this.followService.getFollowerCount(
+          authToken,
+          displayedUser,
+        );
 
         this.view.setIsFollower(false);
         this.view.setFollowerCount(followerCount);

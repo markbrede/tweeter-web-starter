@@ -52,40 +52,41 @@ describe("PostStatusPresenter", () => {
     await postStatusPresenter.submitPost(authToken, postText, currentUser);
     verify(mockService.postStatus(anything(), anything())).once();
 
-    let [capturedAuthToken, capturedStatus] = capture(
+    const [capturedAuthToken, capturedStatus] = capture(
       mockService.postStatus,
     ).last();
     expect(capturedAuthToken).toEqual(authToken);
     expect(capturedStatus.post).toEqual(postText);
   });
 
-  it("tells the view to clear the info message that was displayed previously, clear the post, and display a status posted message when posting the status is successful", async () => {
+  it("tells the view to clear the info message that was displayed previously, clear the post, and display a success message when posting the status is successful", async () => {
     await postStatusPresenter.submitPost(authToken, postText, currentUser);
 
     verify(mockPostStatusPresenterView.deleteMessage("messageId123")).once();
     verify(mockPostStatusPresenterView.clearPost()).once();
     verify(
-      mockPostStatusPresenterView.displayInfoMessage("Status posted!", 2000),
+      mockPostStatusPresenterView.displayInfoMessage("Successfully Posted!", 2000),
     ).once();
 
     verify(mockPostStatusPresenterView.displayErrorMessage(anything())).never();
   });
 
-  it("tells the view to clear the info message and display an error message but does not tell it to clear the post or display a status posted message when posting the status is not successful", async () => {
-    let error = new Error("An error occurred");
+  it("tells the view to clear the info message and display an error message but does not tell it to clear the post or display a success message when posting the status is not successful", async () => {
+    const error = new Error("An error occurred");
     when(mockService.postStatus(anything(), anything())).thenThrow(error);
 
     await postStatusPresenter.submitPost(authToken, postText, currentUser);
+
+    verify(mockPostStatusPresenterView.deleteMessage("messageId123")).once();
     verify(
       mockPostStatusPresenterView.displayErrorMessage(
         "Failed to post the status because of exception: Error: An error occurred",
       ),
     ).once();
 
-    verify(mockPostStatusPresenterView.deleteMessage("messageId123")).once();
     verify(mockPostStatusPresenterView.clearPost()).never();
     verify(
-      mockPostStatusPresenterView.displayInfoMessage("Status posted!", 2000),
+      mockPostStatusPresenterView.displayInfoMessage("Successfully Posted!", 2000),
     ).never();
   });
 });

@@ -28,4 +28,13 @@ export class FakeStatusDAO implements StatusDAO {
   ): Promise<void> {
     return;
   }
+
+  public async addStatusToFeeds(
+    newStatus: Status,
+    feedOwnerAliases: string[]
+  ): Promise<void> {
+    for (const alias of feedOwnerAliases) {
+      await this.addStatusToFeed(newStatus, alias);
+    }
+  }
 }

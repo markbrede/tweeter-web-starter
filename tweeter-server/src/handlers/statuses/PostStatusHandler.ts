@@ -1,5 +1,6 @@
 import { Status } from "tweeter-shared";
 import { AuthorizationService } from "../../services/AuthorizationService";
+import { QueueService } from "../../services/QueueService";
 import { StatusService } from "../../services/StatusService";
 
 interface PostStatusRequest {
@@ -17,6 +18,7 @@ export const postStatusHandler = async (request: PostStatusRequest) => {
   }
 
   await new StatusService().postStatus(status);
+  await new QueueService().sendPostStatusMessage(status);
 
   return {
     success: true,

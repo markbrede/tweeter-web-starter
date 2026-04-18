@@ -12,5 +12,5 @@ export interface StatusDAO {
     lastItem: Status | null
   ): Promise<[Status[], boolean]>;
   addStatusToStory(newStatus: Status): Promise<void>;
-  addStatusToFeed(newStatus: Status, feedOwnerAlias: string): Promise<void>;
+  addStatusToFeeds(newStatus: Status, feedOwnerAliases: string[]): Promise<void>;
 }

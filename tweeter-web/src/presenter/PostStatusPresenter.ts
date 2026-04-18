@@ -33,7 +33,7 @@ export class PostStatusPresenter extends LoadingMessagePresenter<PostStatusView>
         await this.service.postStatus(authToken, status);
 
         this.view.clearPost();
-        this.view.displayInfoMessage("Status posted!", 2000);
+        this.view.displayInfoMessage("Successfully Posted!", 2000);
       },
       "post the status",
       "Posting status...",

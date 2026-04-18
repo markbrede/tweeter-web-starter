@@ -2,9 +2,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: SAM config for Tweeter server
 
-#
-# Global Lambda function properties. These apply to every Lambda function.
-#
 Globals:
   Function:
     Runtime: nodejs20.x
@@ -23,11 +20,9 @@ Globals:
         FEED_TABLE: tweeter_feed
         AUTH_TIMEOUT_MINUTES: 60
         S3_BUCKET: my-cs340-bucket-markbrede
+        POST_STATUS_QUEUE_URL: !Ref postStatusQueue
+        UPDATE_FEED_QUEUE_URL: !Ref updateFeedQueue
 
-#
-# Reusable blocks of configuration. These are referenced throughout the template to avoid duplication.
-# &identifier is used to define a reusable block, and *identifier is used to reference it.
-#
 Metadata:
   x-common-policies: &commonPolicies
     - AWSLambdaBasicExecutionRole
@@ -44,14 +39,7 @@ Metadata:
     Access-Control-Allow-Origin:
       type: string
 
-#
-# AWS resource definitions
-#
 Resources:
-
-  #
-  # Web API
-  #
   tweeterApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -105,11 +93,6 @@ Resources:
             description: "Internal Server Error"
             headers: *commonSwaggerResponseHeaders
         paths:
-
-          #
-          # Endpoint definitions
-          #
-
           /user/get:
             post:
               consumes: *commonConsumes
@@ -145,6 +128,19 @@ Resources:
                 httpMethod: POST
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${userLoginFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /user/logout:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${userLogoutFunction.Arn}/invocations
                 requestTemplates: *commonRequestTemplates
                 responses: *commonAmazonResponses
               responses: *commonSwaggerResponses
@@ -214,32 +210,6 @@ Resources:
                 responses: *commonAmazonResponses
               responses: *commonSwaggerResponses
 
-          /status/feed:
-            post:
-              consumes: *commonConsumes
-              produces: *commonProduces
-              x-amazon-apigateway-integration:
-                type: aws
-                httpMethod: POST
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${statusGetFeedFunction.Arn}/invocations
-                requestTemplates: *commonRequestTemplates
-                responses: *commonAmazonResponses
-              responses: *commonSwaggerResponses
-
-          /status/story:
-            post:
-              consumes: *commonConsumes
-              produces: *commonProduces
-              x-amazon-apigateway-integration:
-                type: aws
-                httpMethod: POST
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${statusGetStoryFunction.Arn}/invocations
-                requestTemplates: *commonRequestTemplates
-                responses: *commonAmazonResponses
-              responses: *commonSwaggerResponses
-
           /follow/follow:
             post:
               consumes: *commonConsumes
@@ -266,6 +236,32 @@ Resources:
                 responses: *commonAmazonResponses
               responses: *commonSwaggerResponses
 
+          /status/feed:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${statusGetFeedFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /status/story:
+            post:
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${statusGetStoryFunction.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
           /status/post:
             post:
               consumes: *commonConsumes
@@ -279,34 +275,18 @@ Resources:
                 responses: *commonAmazonResponses
               responses: *commonSwaggerResponses
 
-          /user/logout:
-            post:
-              consumes: *commonConsumes
-              produces: *commonProduces
-              x-amazon-apigateway-integration:
-                type: aws
-                httpMethod: POST
-                uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${userLogoutFunction.Arn}/invocations
-                requestTemplates: *commonRequestTemplates
-                responses: *commonAmazonResponses
-              responses: *commonSwaggerResponses
+  postStatusQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: post-status-queue
+      VisibilityTimeout: 60
 
-          #
-          # TODO: ADD MORE ENDPOINT DEFINITIONS HERE
-          #
+  updateFeedQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: update-feed-queue
+      VisibilityTimeout: 60
 
-  #
-  # SQS Queues  (This will become relevant in Milestone 4. For M3, leave this section commented out.)
-  #
-  # MyQueue:
-  #   Type: AWS::SQS::Queue
-  #   Properties:
-  #     QueueName: MyQueue
-
-  #
-  # Lambda Layer (reused by all Lambda functions)
-  #
   tweeterLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -317,9 +297,6 @@ Resources:
         - nodejs20.x
       RetentionPolicy: DELETE
 
-  #
-  # Web API Lambda functions
-  #
   userGetFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -360,6 +337,20 @@ Resources:
           Properties:
             RestApiId: !Ref tweeterApi
             Path: /user/login
+            Method: POST
+
+  userLogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: userLogoutFunction
+      Handler: handlers/users/UserLogoutHandler.userLogoutHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /user/logout
             Method: POST
 
   followIsFollowerFunction:
@@ -432,34 +423,6 @@ Resources:
             Path: /follow/followers
             Method: POST
 
-  statusGetFeedFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: statusGetFeedFunction
-      Handler: handlers/statuses/GetFeedHandler.getFeedHandler
-      Policies: *commonPolicies
-      Events:
-        PostApi:
-          Type: Api
-          Properties:
-            RestApiId: !Ref tweeterApi
-            Path: /status/feed
-            Method: POST
-
-  statusGetStoryFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: statusGetStoryFunction
-      Handler: handlers/statuses/GetStoryHandler.getStoryHandler
-      Policies: *commonPolicies
-      Events:
-        PostApi:
-          Type: Api
-          Properties:
-            RestApiId: !Ref tweeterApi
-            Path: /status/story
-            Method: POST
-
   followFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -488,12 +451,42 @@ Resources:
             Path: /follow/unfollow
             Method: POST
 
+  statusGetFeedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: statusGetFeedFunction
+      Handler: handlers/statuses/GetFeedHandler.getFeedHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /status/feed
+            Method: POST
+
+  statusGetStoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: statusGetStoryFunction
+      Handler: handlers/statuses/GetStoryHandler.getStoryHandler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /status/story
+            Method: POST
+
   postStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: postStatusFunction
       Handler: handlers/statuses/PostStatusHandler.postStatusHandler
       Policies: *commonPolicies
+      Timeout: 10
+      MemorySize: 256
       Events:
         PostApi:
           Type: Api
@@ -502,42 +495,37 @@ Resources:
             Path: /status/post
             Method: POST
 
-  userLogoutFunction:
+  postUpdateFeedMessagesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: userLogoutFunction
-      Handler: handlers/users/UserLogoutHandler.userLogoutHandler
+      FunctionName: postUpdateFeedMessagesFunction
+      Handler: handlers/statuses/PostUpdateFeedMessagesHandler.postUpdateFeedMessagesHandler
       Policies: *commonPolicies
+      Timeout: 30
+      MemorySize: 256
       Events:
-        PostApi:
-          Type: Api
+        SQSTrigger:
+          Type: SQS
           Properties:
-            RestApiId: !Ref tweeterApi
-            Path: /user/logout
-            Method: POST
+            Queue: !GetAtt postStatusQueue.Arn
+            BatchSize: 1
+            Enabled: true
 
-  #
-  # TODO: ADD MORE WEB API LAMBDA DEFINITIONS HERE
-  #
-
-  #
-  # SQS Queue Lambda Functions  (This will become relevant in Milestone 4. For M3, leave this section commented out.)
-  #
-  # MyQueueFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     FunctionName: MyQueueFunction
-  #     Handler: <PATH TO LAMBDA HANDLER>
-  #     Policies: *commonPolicies
-  #     Events:
-  #       SQSTrigger:
-  #         Type: SQS
-  #         Properties:
-  #           Queue: !GetAtt MyQueue.Arn
-  #           Enabled: true
-  #
-  # DynamoDB Tables
-  #
+  updateFeedsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: updateFeedsFunction
+      Handler: handlers/statuses/UpdateFeedsHandler.updateFeedsHandler
+      Policies: *commonPolicies
+      Timeout: 30
+      MemorySize: 256
+      Events:
+        SQSTrigger:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt updateFeedQueue.Arn
+            BatchSize: 1
+            Enabled: true
 
   usersTable:
     Type: AWS::DynamoDB::Table
@@ -636,5 +624,4 @@ Resources:
       BillingMode: PROVISIONED
       ProvisionedThroughput:
         ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
-
+        WriteCapacityUnits: 10
