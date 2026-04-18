@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Status } from "tweeter-shared";
 import Post from "./Post";
+import { useUserNavigation } from "../userItem/useUserNavigationHook";
 
 interface Props {
   status: Status;
@@ -8,6 +9,8 @@ interface Props {
 }
 
 const StatusItem = (props: Props) => {
+  const { navigateToUser } = useUserNavigation();
+
   return (
     <>
       <div className="col bg-light mx-0 px-0">
@@ -27,7 +30,10 @@ const StatusItem = (props: Props) => {
                   {props.status.user.firstName} {props.status.user.lastName}
                 </b>{" "}
                 -{" "}
-                <Link to={`${props.featurePath}/${props.status.user.alias}`}>
+                <Link
+                  to={`/story/${props.status.user.alias}`}
+                  onClick={navigateToUser}
+                >
                   {props.status.user.alias}
                 </Link>
               </h2>

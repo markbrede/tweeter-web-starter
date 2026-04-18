@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useParams } from "react-router-dom";
+import { AuthToken } from "tweeter-shared";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfo } from "../userInfo/UserInfoHook";
 import { useUserInfoActions } from "../userInfo/UserInfoActionsHook";
@@ -38,32 +39,40 @@ const ItemScroller = <T,>(props: Props<T>) => {
 
   useEffect(() => {
     if (
-      authToken &&
       displayedUserAliasParam &&
-      displayedUserAliasParam != displayedUser!.alias
+      (!displayedUser || displayedUserAliasParam !== displayedUser.alias)
     ) {
-      presenterRef
-        .current!.getUser(authToken, displayedUserAliasParam)
+      const requestAuthToken = authToken ?? new AuthToken("", 0);
+
+      presenterRef.current!
+        .getUser(requestAuthToken, displayedUserAliasParam)
         .then((toUser) => {
           if (toUser) {
             setDisplayedUser(toUser);
           }
         });
     }
-  }, [displayedUserAliasParam]);
+  }, [displayedUserAliasParam, displayedUser, authToken, setDisplayedUser]);
 
   useEffect(() => {
-    reset();
-    loadMoreItems();
-  }, [displayedUser]);
+    if (!displayedUser) {
+      return;
+    }
 
-  const reset = () => {
     setItems([]);
     presenterRef.current!.reset();
-  };
+
+    const requestAuthToken = authToken ?? new AuthToken("", 0);
+    presenterRef.current!.loadMoreItems(requestAuthToken, displayedUser.alias);
+  }, [displayedUser, authToken]);
 
   const loadMoreItems = () => {
-    presenterRef.current!.loadMoreItems(authToken!, displayedUser!.alias);
+    if (!displayedUser) {
+      return;
+    }
+
+    const requestAuthToken = authToken ?? new AuthToken("", 0);
+    presenterRef.current!.loadMoreItems(requestAuthToken, displayedUser.alias);
   };
 
   return (

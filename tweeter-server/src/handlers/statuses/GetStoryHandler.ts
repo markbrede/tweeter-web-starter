@@ -1,5 +1,4 @@
 import { Status } from "tweeter-shared";
-import { AuthorizationService } from "../../services/AuthorizationService";
 import { StatusService } from "../../services/StatusService";
 
 interface PagedStatusItemRequest {
@@ -10,8 +9,6 @@ interface PagedStatusItemRequest {
 }
 
 export const getStoryHandler = async (request: PagedStatusItemRequest) => {
-  await new AuthorizationService().authorize(request.authToken);
-
   const lastItem = request.lastItem
     ? Status.fromJson(JSON.stringify(request.lastItem))
     : null;

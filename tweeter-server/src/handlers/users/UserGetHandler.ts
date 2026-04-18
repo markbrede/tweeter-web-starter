@@ -1,4 +1,3 @@
-import { AuthorizationService } from "../../services/AuthorizationService";
 import { UserService } from "../../services/UserService";
 
 interface UserGetRequest {
@@ -7,8 +6,6 @@ interface UserGetRequest {
 }
 
 export const userGetHandler = async (request: UserGetRequest) => {
-  await new AuthorizationService().authorize(request.authToken);
-
   const user = await new UserService().getUser(request.alias);
 
   if (user === null) {

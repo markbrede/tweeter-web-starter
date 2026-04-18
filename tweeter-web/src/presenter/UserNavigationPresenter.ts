@@ -21,21 +21,18 @@ export class UserNavigationPresenter extends Presenter<UserNavigationView> {
   }
 
   public async navigateToUser(
-    authToken: AuthToken,
-    displayedUser: User,
+    authToken: AuthToken | null,
     href: string,
   ) {
     await this.doFailureReportingOperation(async () => {
       const alias = this.extractAlias(href);
+      const requestAuthToken = authToken ?? new AuthToken("", 0);
 
-      const toUser = await this.userService.getUser(authToken, alias);
+      const toUser = await this.userService.getUser(requestAuthToken, alias);
 
-      if (toUser && !toUser.equals(displayedUser)) {
-        const match = href.match(/^\/([^/]+)/);
-        const featurePath = match ? `/${match[1]}` : "";
-
+      if (toUser) {
         this.view.setDisplayedUser(toUser);
-        this.view.navigate(`${featurePath}/${toUser.alias}`);
+        this.view.navigate(href);
       }
     }, "get user");
   }

@@ -13,9 +13,9 @@ import {
 
 const AppNavbar = () => {
   const location = useLocation();
-  const { authToken, displayedUser } = useUserInfo();
-  const { clearUserInfo } = useUserInfoActions();
   const navigate = useNavigate();
+  const { authToken, displayedUser, currentUser } = useUserInfo();
+  const { clearUserInfo } = useUserInfoActions();
   const { displayInfoMessage, displayErrorMessage, deleteMessage } =
     useMessageActions();
 
@@ -35,6 +35,10 @@ const AppNavbar = () => {
   const logOut = () => {
     presenterRef.current!.logOut(authToken!);
   };
+
+  const currentAlias = currentUser?.alias;
+  const displayedAlias = displayedUser?.alias;
+  const isAuthenticated = !!currentUser && !!authToken;
 
   return (
     <Navbar
@@ -62,66 +66,103 @@ const AppNavbar = () => {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="ml-auto">
-            <Nav.Item>
-              <NavLink
-                to={`/feed/${displayedUser!.alias}`}
-                className={() =>
-                  location.pathname.startsWith("/feed/")
-                    ? "nav-link active"
-                    : "nav-link"
-                }
-              >
-                Feed
-              </NavLink>
-            </Nav.Item>
-            <Nav.Item>
-              <NavLink
-                to={`/story/${displayedUser!.alias}`}
-                className={() =>
-                  location.pathname.startsWith("/story/")
-                    ? "nav-link active"
-                    : "nav-link"
-                }
-              >
-                Story
-              </NavLink>
-            </Nav.Item>
-            <Nav.Item>
-              <NavLink
-                to={`/followees/${displayedUser!.alias}`}
-                className={() =>
-                  location.pathname.startsWith("/followees/")
-                    ? "nav-link active"
-                    : "nav-link"
-                }
-              >
-                Followees
-              </NavLink>
-            </Nav.Item>
-            <Nav.Item>
-              <NavLink
-                to={`/followers/${displayedUser!.alias}`}
-                className={() =>
-                  location.pathname.startsWith("/followers/")
-                    ? "nav-link active"
-                    : "nav-link"
-                }
-              >
-                Followers
-              </NavLink>
-            </Nav.Item>
-            <Nav.Item>
-              <NavLink
-                id="logout"
-                onClick={logOut}
-                to={location.pathname}
-                className={({ isActive }) =>
-                  isActive ? "nav-link active" : "nav-link"
-                }
-              >
-                Logout
-              </NavLink>
-            </Nav.Item>
+            {isAuthenticated && currentAlias && (
+              <Nav.Item>
+                <NavLink
+                  to={`/feed/${currentAlias}`}
+                  className={() =>
+                    location.pathname.startsWith("/feed/")
+                      ? "nav-link active"
+                      : "nav-link"
+                  }
+                >
+                  Feed
+                </NavLink>
+              </Nav.Item>
+            )}
+
+            {displayedAlias && (
+              <>
+                <Nav.Item>
+                  <NavLink
+                    to={`/story/${displayedAlias}`}
+                    className={() =>
+                      location.pathname.startsWith("/story/")
+                        ? "nav-link active"
+                        : "nav-link"
+                    }
+                  >
+                    Story
+                  </NavLink>
+                </Nav.Item>
+                <Nav.Item>
+                  <NavLink
+                    to={`/followees/${displayedAlias}`}
+                    className={() =>
+                      location.pathname.startsWith("/followees/")
+                        ? "nav-link active"
+                        : "nav-link"
+                    }
+                  >
+                    Followees
+                  </NavLink>
+                </Nav.Item>
+                <Nav.Item>
+                  <NavLink
+                    to={`/followers/${displayedAlias}`}
+                    className={() =>
+                      location.pathname.startsWith("/followers/")
+                        ? "nav-link active"
+                        : "nav-link"
+                    }
+                  >
+                    Followers
+                  </NavLink>
+                </Nav.Item>
+              </>
+            )}
+
+            {isAuthenticated ? (
+              <Nav.Item>
+                <NavLink
+                  id="logout"
+                  onClick={logOut}
+                  to={location.pathname}
+                  className={({ isActive }) =>
+                    isActive ? "nav-link active" : "nav-link"
+                  }
+                >
+                  Logout
+                </NavLink>
+              </Nav.Item>
+            ) : (
+              <>
+                <Nav.Item>
+                  <NavLink
+                    to="/login"
+                    className={() =>
+                      location.pathname === "/login"
+                        ? "nav-link active"
+                        : "nav-link"
+                    }
+                  >
+                    Login
+                  </NavLink>
+                </Nav.Item>
+                <Nav.Item>
+                  <NavLink
+                    to="/register"
+                    className={() =>
+                      location.pathname === "/register"
+                        ? "nav-link active"
+                        : "nav-link"
+                    }
+                  >
+                    Register
+                  </NavLink>
+                </Nav.Item>
+              </>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>
